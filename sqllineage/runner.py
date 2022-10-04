@@ -152,18 +152,24 @@ Target Tables:
             key=lambda x: (str(x[-1]), str(x[0])),
         )
 
-    def print_column_lineage(self) -> None:
+    def print_column_lineage(self, json=False) -> None:
         """
         print column level lineage to stdout
         """
-        for path in self.get_column_lineage():
-            print(" <- ".join(str(col) for col in reversed(path)))
+        if json:
+            pass
+        else:
+            for path in self.get_column_lineage():
+                print(" <- ".join(str(col) for col in reversed(path)))
 
-    def print_table_lineage(self) -> None:
+    def print_table_lineage(self, json=False) -> None:
         """
         print table level lineage to stdout
         """
-        print(str(self))
+        if json:
+            pass
+        else:
+            print(str(self))
 
     def _eval(self):
         self._stmt = [

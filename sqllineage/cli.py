@@ -62,10 +62,20 @@ def main(args=None) -> None:
         default=DEFAULT_PORT,
         metavar="<port_number>{0..65536}",
     )
+    parser.add_argument(
+        "-j",
+        "--json-out",
+        help="export lineage in JSON format",
+        default=False
+    )
     args = parser.parse_args(args)
     if args.e and args.f:
         logging.warning(
             "Both -e and -f options are specified. -e option will be ignored"
+        )
+    if args.graph_visualization and args.json_out:
+        logging.warning(
+            "Both -g and -j options are specified. -j option will be ignored"
         )
     if args.f or args.e:
         sql = extract_sql_from_args(args)
@@ -81,9 +91,9 @@ def main(args=None) -> None:
         if args.graph_visualization:
             runner.draw()
         elif args.level == LineageLevel.COLUMN:
-            runner.print_column_lineage()
+            runner.print_column_lineage(json=args.json_out)
         else:
-            runner.print_table_lineage()
+            runner.print_table_lineage(json=args.json_out)
     elif args.graph_visualization:
         return draw_lineage_graph(**{"host": args.host, "port": args.port})
     else:
