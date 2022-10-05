@@ -63,10 +63,7 @@ def main(args=None) -> None:
         metavar="<port_number>{0..65536}",
     )
     parser.add_argument(
-        "-j",
-        "--json-out",
-        help="export lineage in JSON format",
-        default=False
+        "-j", "--json-out", help="export lineage in JSON format", action="store_true"
     )
     args = parser.parse_args(args)
     if args.e and args.f:
@@ -90,10 +87,8 @@ def main(args=None) -> None:
         )
         if args.graph_visualization:
             runner.draw()
-        elif args.level == LineageLevel.COLUMN:
-            runner.print_column_lineage(json=args.json_out)
         else:
-            runner.print_table_lineage(json=args.json_out)
+            runner.print_lineage(lineage_level=args.level, json_out=args.json_out)
     elif args.graph_visualization:
         return draw_lineage_graph(**{"host": args.host, "port": args.port})
     else:
