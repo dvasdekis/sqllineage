@@ -212,3 +212,38 @@ def test_select_group_by():
 
 def test_select_group_by_ordinal():
     assert_table_lineage_equal("SELECT col1, col2 FROM tab1 GROUP BY 1, 2", {"tab1"})
+
+
+
+def test_select_from_inline_unnest():
+    assert_table_lineage_equal(
+    """
+    SELECT DATE_FORMAT(u.hour,'%Y-%m-%d %H:00:00') as hour_field
+    FROM unnest(sequence(cast(insert_from_timestamp as timestamp), cast(insert_to_timestamp as timestamp), interval '1' hour))
+    UNION ALL
+    SELECT hour_field FROM tab1
+    """, {"tab1"}
+    )
+
+
+def test_select_from_inline_string_agg():
+    assert_table_lineage_equal(
+        """
+    WITH name_values as (
+        SELECT 'LASTNAME' as Last_Name, 'FIRSTNAME SECONDNAME' as First_and_Middle_Names UNION ALL
+        SELECT 'LASTNAMETWO' as Last_Name, 'Goodfirstname' as First_and_Middle_Names UNION ALL
+        SELECT 'Goodlastname' as Last_Name, 'FIRST SECOND' as First_and_Middle_Names UNION ALL
+        SELECT * FROM tab1
+    )
+    SELECT 
+    Last_Name
+    , First_and_Middle_Names
+    -- Below subselect applies Titlecase to the first letter of each word
+    -- T-SQL has no 'proper' function (unlike INITCAP() in Postgres) so had to create this solution
+    , (SELECT STRING_AGG(UPPER(LEFT(value, 1)) + LOWER(RIGHT(value, LEN(value)-1)) , ' ') FROM STRING_SPLIT (TRIM(Last_Name), ' ')) AS nice_lastname
+    , (SELECT STRING_AGG(UPPER(LEFT(value, 1)) + LOWER(RIGHT(value, LEN(value)-1)) , ' ') FROM STRING_SPLIT (TRIM(First_and_Middle_Names), ' ')) AS nice_firstnames
+    FROM name_values ;
+        """, {"tab1"}
+    )
+
+
